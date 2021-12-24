@@ -1,0 +1,27 @@
+-- Create a new trigger for canceled orders
+CREATE TRIGGER KeepCanceledOrders
+ON Orders
+AFTER DELETE
+AS 
+	INSERT INTO CanceledOrders
+	SELECT * FROM deleted;
+  
+  
+  -- Create a new trigger to keep track of discounts
+CREATE TRIGGER CustomerDiscountHistory
+ON Discounts
+AFTER UPDATE
+AS
+	-- Store old and new values into the `DiscountsHistory` table
+	INSERT INTO DiscountsHistory (Customer, OldDiscount, NewDiscount, ChangeDate)
+	SELECT i.Customer, d.Discount, i.Discount, GETDATE()
+	FROM inserted AS i
+	INNER JOIN deleted AS d ON i.Customer = d.Customer;
+  
+  
+  -- Notify the Sales team of new orders
+CREATE TRIGGER NewOrderAlert
+ON Orders
+AFTER INSERT
+AS
+	EXECUTE SendEmailtoSales;
